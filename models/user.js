@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const saltRounds = 10; // 몇글자인지 
+const saltRounds = 5; // 몇글자인지 
+const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
   name : {
@@ -15,7 +16,7 @@ const userSchema = mongoose.Schema({
   },
   password : {
     type: String,
-    maxlength : 50
+    maxlength : 70
   },
   lastName : {
     type : String,
@@ -51,7 +52,7 @@ userSchema.pre('save',function(next){
         // Store hash in your password DB.
           //myPlaintextPassword(1번째 인자) = 순수 비번
           //hash == 암호화된 비번
-          console.log(salt)
+          console.log(hash)
           if(err){
             next(err)
           }
@@ -59,8 +60,40 @@ userSchema.pre('save',function(next){
           next();
       });
     });
+  }else{
+    // 다른내용을 바꾸는 경우
+    next();
   }
 })
+
+userSchema.methods.comparePassword = function(plainPassword, cb){
+ // plainPassword : 암호화되지 않는 비번
+ bcrypt.compare(plainPassword, this.password, function(err, isMatch){
+  if(err){
+    // 같지 않음
+    return cb(err)
+  }
+  cb(null, isMatch)
+ })
+}
+
+userSchema.methods.generateToken = function(cb){
+  var user = this;
+
+  // jsonwebtoken을 이용해서 토큰 생성
+  // _id = db Id
+  var token = jwt.sign(user._id.toHexString(), 'secretToken');
+  // user_id + 'secretToken = token;
+  user.token = token;
+  user.save(function(err, user){
+    if(err){
+      return cb(err)
+    }
+    cb(null, user)
+  })
+}
+
+
 
 const User = mongoose.model('User',userSchema);
 
