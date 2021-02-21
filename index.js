@@ -21,7 +21,7 @@ mongoose.connect(config.mongoURI, {
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World! testsetasdasd nasd')
+  res.send('Hello World! testsetasdasd nasd123')
 })
 
 app.post('/register',(req, res) => {
@@ -31,6 +31,8 @@ app.post('/register',(req, res) => {
   //req.body = json형식으로 담겨있다.
   
   const user = new User(req.body);
+
+  //비밀번호 암호화 
 
   // 몽고디비 메서드 save
   user.save((err, userInfo)=>{
